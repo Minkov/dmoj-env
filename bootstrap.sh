@@ -13,11 +13,10 @@ show_msg() {
 
 launch_script() {
 	local script="$1"
-	local msg="$2"
+	shift
+	local params=("$@")
 
-	show_msg "$msg"
-
-	bash "/vagrant/scripts/$script" \
+	bash "/vagrant/scripts/$script" "${params[@]}" \
 		&> "$LOGS_DIR/$script.log"
 }
 
