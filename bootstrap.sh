@@ -1,46 +1,62 @@
 #!/usr/bin/env bash
 
-echo -e "\n --- Find all logs in /vagrant/logs ---\n"
 LOGS_DIR=/vagrant/logs
-rm -r $LOGS_DIR
-mkdir -p $LOGS_DIR
-
-echo -e "\n --- Installing apt-get dependendies ---\n"
-bash /vagrant/scripts/dependendies.sh $LOGS_DIR
-
-echo -e "\n --- Installing Node.js ---\n"
-bash /vagrant/scripts/node.js.sh $LOGS_DIR
-
-echo -e "\n --- Installing Node.js packages ---\n"
-bash /vagrant/scripts/node.js-packages.sh $LOGS_DIR 
-
-echo -e "\n --- Installing and Setting up MySQL ---\n"
-bash /vagrant/scripts/mysql.sh $LOGS_DIR
 
 DMOJ_DIR=/vagrant/dmoj
 SITE_DIR=$DMOJ_DIR/site
 FILES_DIR=/vagrant/files
 VIRTUALENV_PATH=/envs/dmoj
 
+show_msg() {
+	echo "--- $1 ---"
+}
 
-echo -e "\n --- Setup virtualenv ---\n"
-bash /vagrant/scripts/virtualenv-setup.sh $LOGS_DIR $VIRTUALENV_PATH
+launch_script() {
+	local script="$1"
+	local msg="$2"
 
-sudo chown -R vagrant:vagrant $VIRTUALENV_PATH
+	show_msg "$msg"
 
-source $VIRTUALENV_PATH/bin/activate
+	bash "/vagrant/scripts/$script" \
+		&> "$LOGS_DIR/$script.log"
+}
 
-echo -e "\n --- Checkout web app --- \n"
-bash /vagrant/scripts/checkout-app.sh $LOGS_DIR $SITE_DIR
+show_msg "Find all logs in /vagrant/logs"
+rm -r "$LOGS_DIR"
+mkdir -p "$LOGS_DIR"
 
+show_msg "Installing apt-get dependendies"
+launch_script dependendies.sh
 
-echo -e "\n --- Setup web app ---\n"
-bash /vagrant/scripts/setup-app.sh $LOGS_DIR $SITE_DIR
+show_msg "Installing Node.js"
+launch_script node.js.sh
+
+show_msg "Installing Node.js packages"
+launch_script node.js-packages.sh
+
+show_msg "Installing and Setting up MySQL"
+launch_script mysql.sh
+
+show_msg "Installing Node.js packages"
+launch_script node.js-packages.sh
+
+show_msg "Setup virtualenv"
+launch_script virtualenv-setup.sh "$VIRTUALENV_PATH"
+
+sudo chown -R vagrant:vagrant "$VIRTUALENV_PATH"
+
+source "$VIRTUALENV_PATH/bin/activate"
+
+show_msg "Checkout web app"
+launch_script checkout-app.sh "$SITE_DIR"
+
+show_msg "Setup web app"
+launch_script setup-app.sh "$SITE_DIR"
 
 mkdir -p /vagrant/files
 cd /vagrant/files
 
-curl http://uwsgi.it/install | bash -s default $PWD/uwsgi >> $LOGS_DIR/uwsgi.log
+curl http://uwsgi.it/install | bash -s default "$PWD/uwsgi" >> "$LOGS_DIR/uwsgi.log"
 
-echo -e "\n --- Setup Supervisor and nginx ---\n"
-bash /vagrant/scripts/setup-supervisor-nginx.sh $LOGS_DIR $FILES_DIR
+show_msg "Setup Supervisor and nginx"
+launch_script setup-supervisor-nginx.sh "$FILES_DIR"

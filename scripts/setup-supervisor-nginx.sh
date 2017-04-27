@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
 
-LOGS_FILE=$1/`basename "$0"`.log
+FILES_DIR="$1"
 
-FILES_DIR=$2
+cp "$FILES_DIR"/site.conf /etc/supervisor/conf.d/site.conf
+cp "$FILES_DIR"/bridged.conf /etc/supervisor/conf.d/bridged.conf
+cp "$FILES_DIR"/nginx.conf /etc/nginx/conf.d/nginx.conf
 
-cp $FILES_DIR/site.conf /etc/supervisor/conf.d/site.conf >> "$LOGS_FILE"
-cp $FILES_DIR/bridged.conf /etc/supervisor/conf.d/bridged.conf >> "$LOGS_FILE"
-cp $FILES_DIR/nginx.conf /etc/nginx/conf.d/nginx.conf >> "$LOGS_FILE"
-
-sudo systemctl restart supervisor >> "$LOGS_FILE"
-sudo systemctl reload-or-restart nginx >> "$LOGS_FILE"
-
+sudo systemctl restart supervisor
+sudo systemctl reload-or-restart nginx
